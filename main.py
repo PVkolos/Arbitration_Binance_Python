@@ -4,9 +4,10 @@ import datetime
 from binance.client import Client
 import binance
 from binance import exceptions
+import math
 
-api_key = 'API_КЛЮЧ'
-api_secret = 'SECRET_API_КЛЮЧ'
+api_key = 'ykVLRPI5KCDkp4lVLHa5Elyx4LR6h5mRJxlT5cE7TGxMEIcaEiRYKuoXPPktVfv4'
+api_secret = 'BPLBXLJ0UmT8r0ijoVzxJ2KVyAwQOMjuAiDm5T730JC7iAkup6O8HdvcXjJjj6Iv'
 
 client = Client(api_key, api_secret)
 
@@ -50,21 +51,28 @@ def binance_torg():
                                 if float(balance(one_name)['free']) == 0:
                                     try:
                                         symbol = one_name + 'BTC'
-                                        order_market_buy(symbol, quantity=float(balance('BTC')['free']) / 2)
-                                    except:
+                                        rou = get_symbol_info(symbol)
+                                        q = round(float(balance('BTC')['free']) / 2, rou)
+                                        order_market_buy(symbol, quantity=q)
+                                        print(f"Купленно {one_name} в количестве {q}")
+                                    except Exception as e:
                                         continue
 
                                 try:
                                     symbol = two_name + one_name
-                                    quantity = round(float(balance(one_name)['free']) / price(symbol), 8)
+                                    rou = get_symbol_info(symbol)
+                                    quantity = round(float(balance(one_name)['free']) / price(symbol), rou)
                                     order_market_buy(symbol, quantity)
+                                    print(f"Купленно {two_name} в количестве {quantity}")
                                 except binance.exceptions.BinanceAPIException as e:
                                     if 'Invalid' in e.message:
                                         try:
                                             symbol = one_name + two_name
-                                            quantity = round(float(balance(one_name)['free']) / price(symbol), 8)
+                                            rou = get_symbol_info(symbol)
+                                            quantity = round(float(balance(one_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
-                                        except Exception:
+                                            print(f"Купленно {two_name} в количестве {quantity}")
+                                        except Exception as e:
                                             check('BTC', one_name)
                                             continue
                                     else:
@@ -77,14 +85,18 @@ def binance_torg():
 
                                 try:
                                     symbol = tree_name + two_name
-                                    quantity = round(float(balance(two_name)['free']) / price(symbol), 8)
-                                    client.order_market_buy(symbol, quantity)
+                                    rou = get_symbol_info(symbol)
+                                    quantity = round(float(balance(two_name)['free']) / price(symbol), rou)
+                                    order_market_buy(symbol, quantity)
+                                    print(f'Купленно {tree_name} в количестве {quantity}')
                                 except binance.exceptions.BinanceAPIException as e:
                                     if 'Invalid symbol' in e.message:
                                         try:
                                             symbol = two_name + tree_name
-                                            quantity = round(float(balance(two_name)['free']) / price(symbol), 8)
+                                            rou = get_symbol_info(symbol)
+                                            quantity = round(float(balance(two_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
+                                            print(f'Купленно {tree_name} в количестве {quantity}')
                                         except Exception:
                                             check('BTC', two_name)
                                             continue
@@ -97,14 +109,18 @@ def binance_torg():
 
                                 try:
                                     symbol = four_name + tree_name
-                                    quantity = round(float(balance(tree_name)['free']) / price(symbol), 8)
-                                    client.order_market_buy(symbol, quantity)
+                                    rou = get_symbol_info(symbol)
+                                    quantity = round(float(balance(tree_name)['free']) / price(symbol), rou)
+                                    order_market_buy(symbol, quantity)
+                                    print(f'Купленно {four_name} в количестве {quantity}')
                                 except binance.exceptions.BinanceAPIException as e:
                                     if 'Invalid' in e.message:
                                         try:
                                             symbol = tree_name + four_name
-                                            quantity = round(float(balance(tree_name)['free']) / price(symbol), 8)
+                                            rou = get_symbol_info(symbol)
+                                            quantity = round(float(balance(tree_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
+                                            print(f'Купленно {four_name} в количестве {quantity}')
                                         except Exception:
                                             check('BTC', tree_name)
                                             continue
@@ -118,16 +134,19 @@ def binance_torg():
 
                                 try:
                                     symbol = 'BTC' + four_name
-                                    quantity = round(float(balance(four_name)['free']) / price(symbol), 8)
-                                    client.order_market_buy(symbol, quantity)
+                                    rou = get_symbol_info(symbol)
+                                    quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
+                                    order_market_buy(symbol, quantity)
+                                    print(f'Купленно BTC в количестве {quantity}')
                                 except binance.exceptions.BinanceAPIException as e:
                                     if 'Invalid' in e.message:
                                         try:
                                             symbol = four_name + 'BTC'
-                                            quantity = round(float(balance(four_name)['free']) / price(symbol), 8)
+                                            rou = get_symbol_info(symbol)
+                                            quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
+                                            print(f'Купленно BTC в количестве {quantity}')
                                         except Exception as e:
-                                            print(e, 41)
 
 
                                 lis.append(pro)
@@ -145,25 +164,34 @@ def balance(symbol):
 
 
 def order_market_buy(symbol, quantity):
-    client.order_market_buy(symbol=symbol, quantity=quantity)
+    client.order_market_buy(symbol=symbol, quantity=quantity, recvWindow=50000)
     print(f'Успешно куплена валютная пара {symbol} в количестве {quantity}!')
 
 
 def order_market_sell(symbol, quantity):
     client.order_market_sell(symbol=symbol, quantity=quantity)
-    print(f'Успешно продана валютная пара {symbol} в количестве {quantity}!')
+    print(f'Успешно продана валютная пара {symbol} в количестве {quantity}!', recvWindow=50000)
 
 
 def check(name_1, name_2):
     try:
         symbol = name_1 + name_2
-        quantity = round(balance(name_2)['free'] / price(symbol), 8)
+        rou = get_symbol_info(symbol)
+        quantity = round(balance(name_2)['free'] / price(symbol), rou)
         order_market_buy(symbol, quantity)
     except binance.exceptions.BinanceAPIException as e:
         if 'Invalid' in e.message:
             symbol = name_2 + name_1
-            quantity = round(balance(name_2)['free'] / price(symbol), 8)
+            rou = get_symbol_info(symbol)
+            quantity = round(balance(name_2)['free'] / price(symbol), rou)
             order_market_sell(symbol, quantity)
+
+
+def get_symbol_info(symbol):
+    one = client.get_symbol_info(symbol)
+    q = float(one['filters'][2]['stepSize'])
+    precision = int(round(-math.log(q, 10), 0))
+    return precision
 
 
 while True:
