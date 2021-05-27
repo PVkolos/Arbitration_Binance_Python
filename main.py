@@ -45,14 +45,14 @@ def binance_torg():
                             tr_2 = Data[two_name][tree_name] * tr_1
                             sum_end = Data[tree_name][four_name] * tr_2
                             now = datetime.datetime.now()
-                            pro = ((max(sum_end, sum_start) - min(sum_end, sum_start)) / min(sum_end, sum_start)) * 100
+                            pro = (sum_end - sum_start) / sum_end * 100
                             if pro >= 2 and pro not in lis:
                                 print(f'{one_name} -> {two_name} -> {tree_name} -> {four_name} ----> {pro} {now.strftime("%H:%M:%S")}')
                                 if float(balance(one_name)['free']) == 0:
                                     try:
                                         symbol = one_name + 'BTC'
-                                        rou = get_symbol_info(symbol)
-                                        q = round(float(balance('BTC')['free']) / 2, rou)
+                                        rou = get_symbol_info(one_name, 'BTC')
+                                        q = round(float(float(balance('BTC')['free']) / 2), rou)
                                         order_market_buy(symbol, quantity=q)
                                         print(f"Купленно {one_name} в количестве {q}")
                                     except Exception as e:
@@ -60,94 +60,92 @@ def binance_torg():
 
                                 try:
                                     symbol = two_name + one_name
-                                    rou = get_symbol_info(symbol)
+                                    rou = get_symbol_info(two_name, one_name)
                                     quantity = round(float(balance(one_name)['free']) / price(symbol), rou)
                                     order_market_buy(symbol, quantity)
                                     print(f"Купленно {two_name} в количестве {quantity}")
-                                except binance.exceptions.BinanceAPIException as e:
-                                    if 'Invalid' in e.message:
+                                except Exception as e:
+                                    if 'Invalid' in e.message or 'closed' in e.message or (not client.get_symbol_info(two_name + one_name)):
                                         try:
                                             symbol = one_name + two_name
-                                            rou = get_symbol_info(symbol)
+                                            rou = get_symbol_info(one_name, two_name)
                                             quantity = round(float(balance(one_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
                                             print(f"Купленно {two_name} в количестве {quantity}")
-                                        except Exception as e:
+                                        except Exception as r:
                                             check('BTC', one_name)
                                             continue
                                     else:
                                         check('BTC', one_name)
                                         continue
 
-                                except Exception:
+                                except Exception as e:
                                     check('BTC', one_name)
                                     continue
 
                                 try:
                                     symbol = tree_name + two_name
-                                    rou = get_symbol_info(symbol)
+                                    rou = get_symbol_info(tree_name, two_name)
                                     quantity = round(float(balance(two_name)['free']) / price(symbol), rou)
                                     order_market_buy(symbol, quantity)
                                     print(f'Купленно {tree_name} в количестве {quantity}')
-                                except binance.exceptions.BinanceAPIException as e:
-                                    if 'Invalid symbol' in e.message:
+                                except Exception as e:
+                                    if 'Invalid symbol' in e.message or 'closed' in e.message or (not client.get_symbol_info(tree_name + two_name)):
                                         try:
                                             symbol = two_name + tree_name
-                                            rou = get_symbol_info(symbol)
+                                            rou = get_symbol_info(two_name, tree_name)
                                             quantity = round(float(balance(two_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
                                             print(f'Купленно {tree_name} в количестве {quantity}')
-                                        except Exception:
+                                        except Exception as r:
                                             check('BTC', two_name)
                                             continue
                                     else:
                                         check('BTC', two_name)
                                         continue
-                                except Exception:
+                                except Exception as e:
                                     check('BTC', two_name)
                                     continue
 
                                 try:
                                     symbol = four_name + tree_name
-                                    rou = get_symbol_info(symbol)
+                                    rou = get_symbol_info(four_name, tree_name)
                                     quantity = round(float(balance(tree_name)['free']) / price(symbol), rou)
                                     order_market_buy(symbol, quantity)
                                     print(f'Купленно {four_name} в количестве {quantity}')
-                                except binance.exceptions.BinanceAPIException as e:
-                                    if 'Invalid' in e.message:
+                                except Exception as e:
+                                    if 'Invalid' in e.message or 'closed' in e.message or (not client.get_symbol_info(four_name + tree_name)):
                                         try:
                                             symbol = tree_name + four_name
-                                            rou = get_symbol_info(symbol)
+                                            rou = get_symbol_info(tree_name, four_name)
                                             quantity = round(float(balance(tree_name)['free']) / price(symbol), rou)
                                             order_market_sell(symbol, quantity)
                                             print(f'Купленно {four_name} в количестве {quantity}')
-                                        except Exception:
+                                        except Exception as r:
                                             check('BTC', tree_name)
                                             continue
                                     else:
                                         check('BTC', tree_name)
                                         continue
-                                except Exception:
+                                except Exception as e:
                                     check('BTC', tree_name)
                                     continue
 
-
-                                try:
-                                    symbol = 'BTC' + four_name
-                                    rou = get_symbol_info(symbol)
-                                    quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
-                                    order_market_buy(symbol, quantity)
-                                    print(f'Купленно BTC в количестве {quantity}')
-                                except binance.exceptions.BinanceAPIException as e:
-                                    if 'Invalid' in e.message:
-                                        try:
-                                            symbol = four_name + 'BTC'
-                                            rou = get_symbol_info(symbol)
-                                            quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
-                                            order_market_sell(symbol, quantity)
-                                            print(f'Купленно BTC в количестве {quantity}')
-                                        except Exception as e:
-
+                                if four_name != 'BTC':
+                                    try:
+                                        symbol = 'BTC' + four_name
+                                        rou = get_symbol_info('BTC', four_name)
+                                        quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
+                                        order_market_buy(symbol, quantity)
+                                        print(f'Купленно BTC в количестве {quantity}')
+                                    except Exception as e:
+                                        if 'Invalid' in e.message or 'closed' in e.message or (not client.get_symbol_info('BTC' + four_name)):
+                                            try:
+                                                symbol = four_name + 'BTC'
+                                                rou = get_symbol_info(four_name, 'BTC')
+                                                quantity = round(float(balance(four_name)['free']) / price(symbol), rou)
+                                                order_market_sell(symbol, quantity)
+                                                print(f'Купленно BTC в количестве {quantity}')
 
                                 lis.append(pro)
     except Exception:
@@ -165,33 +163,31 @@ def balance(symbol):
 
 def order_market_buy(symbol, quantity):
     client.order_market_buy(symbol=symbol, quantity=quantity, recvWindow=50000)
-    print(f'Успешно куплена валютная пара {symbol} в количестве {quantity}!')
 
 
 def order_market_sell(symbol, quantity):
     client.order_market_sell(symbol=symbol, quantity=quantity)
-    print(f'Успешно продана валютная пара {symbol} в количестве {quantity}!', recvWindow=50000)
 
 
 def check(name_1, name_2):
     try:
-        symbol = name_1 + name_2
+        symbol = name_2 + name_1
         rou = get_symbol_info(symbol)
         quantity = round(balance(name_2)['free'] / price(symbol), rou)
-        order_market_buy(symbol, quantity)
-    except binance.exceptions.BinanceAPIException as e:
-        if 'Invalid' in e.message:
-            symbol = name_2 + name_1
-            rou = get_symbol_info(symbol)
-            quantity = round(balance(name_2)['free'] / price(symbol), rou)
-            order_market_sell(symbol, quantity)
+        order_market_sell(symbol, quantity)
+        print('check', quantity)
+    except:
+        pass
 
 
-def get_symbol_info(symbol):
-    one = client.get_symbol_info(symbol)
-    q = float(one['filters'][2]['stepSize'])
-    precision = int(round(-math.log(q, 10), 0))
-    return precision
+def get_symbol_info(n1, n2):
+    try:
+        one = client.get_symbol_info(n1 + n2)
+        q = float(one['filters'][2]['stepSize'])
+        precision = int(round(-math.log(q, 10), 0))
+        return precision
+    except:
+        pass
 
 
 while True:
