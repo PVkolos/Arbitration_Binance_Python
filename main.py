@@ -7,8 +7,8 @@ from binance import exceptions
 import math
 import time
 
-api_key = 'ykVLRPI5KCDkp4lVLHa5Elyx4LR6h5mRJxlT5cE7TGxMEIcaEiRYKuoXPPktVfv4'
-api_secret = 'BPLBXLJ0UmT8r0ijoVzxJ2KVyAwQOMjuAiDm5T730JC7iAkup6O8HdvcXjJjj6Iv'
+api_key = ''
+api_secret = ''
 
 client = Client(api_key, api_secret)
 
